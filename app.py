@@ -99,9 +99,9 @@ col_turn, col_avatar = st.columns([2, 1])
 
 with col_turn:
     if current_player == 1:
-        st.subheader("🔴 Lượt của ĐỎ (Bạn)")
+        st.subheader("🔴 Lượt của ĐỎ")
     else:
-        st.subheader("🔵 Lượt của XANH (Bạn gái)")
+        st.subheader("🔵 Lượt của XANH")
 
 with col_avatar:
     # Hiển thị hình ảnh tương ứng theo lượt đi cho sinh động
