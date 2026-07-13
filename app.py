@@ -92,9 +92,29 @@ if "click" in st.query_params:
     st.rerun()
 
 # --- GIAO DIỆN CHÍNH ---
-st.title("Thưởng trà, cầm kì thi họa ngắm hoa với Vịt 💖")
-player_turn_str = "🔴 Lượt của ĐỎ" if current_player == 1 else "🔵 Lượt của XANH"
-st.subheader(player_turn_str)
+st.title("Thưởng trà và cầm kì với Vịt💖 - Cờ Gánh")
+
+# Tạo 2 cột: cột trái hiện thông tin lượt đi, cột phải hiện hình ảnh bạn gái
+col_turn, col_avatar = st.columns([2, 1])
+
+with col_turn:
+    if current_player == 1:
+        st.subheader("🔴 Lượt của ĐỎ (Bạn)")
+    else:
+        st.subheader("🔵 Lượt của XANH (Bạn gái)")
+
+with col_avatar:
+    # Hiển thị hình ảnh tương ứng theo lượt đi cho sinh động
+    try:
+        if current_player == 1:
+            # Khi tới lượt bạn (Đỏ), hiện hình ôm con gà tinh nghịch
+            st.image("em_yeu_om_ga.jpg", width=120, caption="Đừng đi nước nào gà quá nha")
+        else:
+            # Khi tới lượt cô ấy (Xanh), hiện hình ôm bó hoa tươi tắn
+            st.image("em_yeu_om_hoa.jpg", width=120, caption="Em yêu xinh hơn hoa")
+    except:
+        # Phòng trường hợp chưa load được ảnh thì bỏ qua không làm sập app
+        pass
 
 st.info(msg_state)
 
