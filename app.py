@@ -53,8 +53,8 @@ if 'selected_piece' not in st.session_state:
     st.session_state.selected_piece = None
 
 # --- GIAO DIỆN CHÍNH ---
-st.title("Cờ Gánh LDR Multiplayer 💖")
-player_turn_str = "🔴 Lượt của ĐỎ (Bạn)" if current_player == 1 else "🔵 Lượt của XANH (Bạn gái)"
+st.title("Thưởng trà, cầm kì thi họa ngắm hoa với Vịt 💖")
+player_turn_str = "🔴 Lượt của ĐỎ " if current_player == 1 else "🔵 Lượt của XANH"
 st.subheader(player_turn_str)
 
 st.info(msg_state)
