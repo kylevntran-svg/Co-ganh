@@ -145,6 +145,12 @@ svg_bg = """
 
 css_style = f"""
 <style>
+/* --- ĐỔI MÀU CHỮ SANG XANH PASTEL --- */
+h1, h2, h3, h4, h5, h6, p, span, caption, div[data-testid="stMarkdownContainer"] p {{
+    color: #B4D4FF !important;
+}}
+
+/* --- PHẦN CODE BÀN CỜ CŨ GIỮ NGUYÊN --- */
 .board-container {{
     display: grid;
     grid-template-columns: repeat(5, 1fr);
