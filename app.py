@@ -3,17 +3,16 @@ import requests
 import numpy as np
 from co_ganh import CoGanh
 
-# 🔴 THAY ĐƯỜNG LINK FIREBASE CỦA BẠN VÀO ĐÂY (Nhớ thẳng hàng, không xuống dòng giữa chừng nhé)
+# 🔴 ĐƯỜNG LINK FIREBASE CỦA BẠN (Đã được định dạng thẳng hàng)
 FIREBASE_URL = "https://co-ganh-4fe17-default-rtdb.firebaseio.com/"
 
 # --- CÁC HÀM GIAO TIẾP VỚI BỘ NÃO FIREBASE ---
-def save_game_to_firebase(board, current_player, message, selected_piece):
-    """Đẩy toàn bộ trạng thái trận đấu và quân cờ đang chọn lên đám mây"""
+def save_game_to_firebase(board, current_player, message):
+    """Đẩy trạng thái bàn cờ lên đám mây (Không cần đẩy selected_piece để tối ưu tốc độ bấm)"""
     data = {
         "board": board.tolist() if isinstance(board, np.ndarray) else board,
         "current_player": current_player,
-        "message": message,
-        "selected_piece": selected_piece  # Lưu trạng thái chọn quân lên Firebase [r, c] hoặc None
+        "message": message
     }
     try:
         requests.put(f"{FIREBASE_URL}game.json", json=data)
@@ -21,7 +20,7 @@ def save_game_to_firebase(board, current_player, message, selected_piece):
         pass
 
 def load_game_from_firebase():
-    """Lấy trạng thái trận đấu từ đám mây về"""
+    """Lấy trạng thái bàn cờ từ đám mây về"""
     try:
         res = requests.get(f"{FIREBASE_URL}game.json")
         if res.status_code == 200 and res.json():
@@ -35,179 +34,122 @@ fb_data = load_game_from_firebase()
 
 if fb_data is None:
     game_logic = CoGanh()
-    save_game_to_firebase(game_logic.board, 1, "Trận đấu trực tuyến bắt đầu! Đỏ đi trước.", None)
+    save_game_to_firebase(game_logic.board, 1, "Trận đấu trực tuyến chính thức bắt đầu! Đỏ đi trước.")
     board_state = game_logic.board
     current_player = 1
-    msg_state = "Trận đấu trực tuyến bắt đầu! Đỏ đi trước."
-    selected_piece = None
+    msg_state = "Trận đấu trực tuyến chính thức bắt đầu! Đỏ đi trước."
 else:
     board_state = np.array(fb_data["board"])
     current_player = fb_data["current_player"]
     msg_state = fb_data["message"]
-    # Ép kiểu dữ liệu mây về dạng tuple của Python
-    selected_piece = fb_data.get("selected_piece", None)
-    if selected_piece is not None:
-        selected_piece = tuple(selected_piece)
 
 # Nạp dữ liệu vào lõi logic để tính toán nước đi hợp pháp
 game_logic = CoGanh()
 game_logic.board = board_state
 
-# --- XỬ LÝ SỰ KIỆN CLICK CHUỘT QUA URL (Khắc phục Amnesia bằng Firebase) ---
-if "click" in st.query_params:
-    click_pos = st.query_params["click"]
-    st.query_params.clear()  # Xóa param để tránh lặp hành động
-    
-    r, c = map(int, click_pos.split("_"))
-    val = board_state[r, c]
-    
-    if selected_piece is None:
-        if val == current_player:
-            selected_piece = (r, c)
-            msg_state = "Đã chọn quân. Hãy click ô trống có đường nối kề cạnh để di chuyển!"
-            save_game_to_firebase(board_state, current_player, msg_state, selected_piece)
-        else:
-            msg_state = "Ủa quân này đâu phải của bạn!"
-            save_game_to_firebase(board_state, current_player, msg_state, selected_piece)
-    else:
-        sr, sc = selected_piece
-        if (r, c) == (sr, sc):
-            selected_piece = None
-            msg_state = "Đã hủy chọn quân."
-            save_game_to_firebase(board_state, current_player, msg_state, selected_piece)
-        elif val == current_player:
-            selected_piece = (r, c)
-            msg_state = "Đã đổi sang quân cờ khác."
-            save_game_to_firebase(board_state, current_player, msg_state, selected_piece)
-        elif val == 0:
-            # Chạy hàm kiểm tra và di chuyển từ file co_ganh.py gốc của bạn
-            success, next_msg = game_logic.move(sr, sc, r, c, current_player)
-            if success:
-                current_player *= -1  # Đổi lượt
-            selected_piece = None
-            save_game_to_firebase(game_logic.board, current_player, next_msg, selected_piece)
-        else:
-            msg_state = "Không được đi đè lên quân đối phương nha!"
-            save_game_to_firebase(board_state, current_player, msg_state, selected_piece)
-    st.rerun()
+# Khởi tạo bộ nhớ tạm chọn quân (Lưu local trong session_state để không bị reload trang)
+if 'selected_piece' not in st.session_state:
+    st.session_state.selected_piece = None
 
 # --- GIAO DIỆN CHÍNH ---
-st.title("Thưởng trà và cầm kì với Vịt💖 - Cờ Gánh")
+st.title("Thưởng trà và cầm kì với Vịt 💖")
 
 # Tạo 2 cột: cột trái hiện thông tin lượt đi, cột phải hiện hình ảnh bạn gái
 col_turn, col_avatar = st.columns([2, 1])
 
 with col_turn:
     if current_player == 1:
-        st.subheader("🔴 Lượt của ĐỎ")
+        st.subheader("🔴 Lượt của ĐỎ (Bạn)")
+        st.write("Hãy tập trung đưa ra nước đi hiểm hóc nào! 🧠")
     else:
-        st.subheader("🔵 Lượt của XANH")
+        st.subheader("🔵 Lượt của XANH (Bạn gái)")
+        st.write("Đến lượt công chúa trổ tài gánh cờ rồi! ✨")
 
 with col_avatar:
-    # Hiển thị hình ảnh tương ứng theo lượt đi cho sinh động
     try:
         if current_player == 1:
-            # Khi tới lượt bạn (Đỏ), hiện hình ôm con gà tinh nghịch
-            st.image("em_yeu_om_ga.jpg", width=120, caption="Đừng đi nước nào gà quá nha")
+            st.image("gai_om_ga.jpg", width=120, caption="Đang chờ bạn gái...")
         else:
-            # Khi tới lượt cô ấy (Xanh), hiện hình ôm bó hoa tươi tắn
-            st.image("em_yeu_om_hoa.jpg", width=120, caption="Em yêu xinh hơn hoa")
+            st.image("gai_om_hoa.jpg", width=120, caption="Em yêu xinh hơn hoa")
     except:
-        # Phòng trường hợp chưa load được ảnh thì bỏ qua không làm sập app
         pass
 
 st.info(msg_state)
 
+# Nút bấm thủ công để tải nước đi mới của đối phương
 if st.button("Cập nhật nước đi của đối phương 🔄", type="primary"):
     st.rerun()
 
-# --- DỰNG BÀN CỜ SVG CÓ ĐƯỜNG NỐI HỢP PHÁP ---
-svg_bg = """
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <line x1="40" y1="40" x2="360" y2="40" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="120" x2="360" y2="120" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="200" x2="360" y2="200" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="280" x2="360" y2="280" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="360" x2="360" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="40" x2="40" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="120" y1="40" x2="120" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="200" y1="40" x2="200" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="280" y1="40" x2="280" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="360" y1="40" x2="360" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="40" x2="360" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="360" y1="40" x2="40" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="200" y1="40" x2="40" y2="200" stroke="%23555555" stroke-width="2"/>
-  <line x1="200" y1="40" x2="360" y2="200" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="200" x2="200" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="360" y1="200" x2="200" y2="360" stroke="%23555555" stroke-width="2"/>
-</svg>
-""".replace("\n", "").strip()
+st.write("---")
 
-css_style = f"""
-<style>
-/* --- ĐỔI MÀU CHỮ SANG XANH PASTEL --- */
-h1, h2, h3, h4, h5, h6, p, span, caption, div[data-testid="stMarkdownContainer"] p {{
-    color: #B4D4FF !important;
-}}
+# --- TÙY CHỈNH CSS (Xanh pastel + Nút bấm tròn mượt mà) ---
+st.markdown("""
+    <style>
+    /* Màu chữ xanh pastel ngọt ngào */
+    h1, h2, h3, h4, h5, h6, p, span, caption, div[data-testid="stMarkdownContainer"] p {
+        color: #B4D4FF !important;
+    }
+    /* Căn giữa nút bấm trong cột */
+    div[data-testid="column"] { display: flex; justify-content: center; align-items: center; }
+    /* Định dạng nút cờ hình tròn, mượt mà */
+    button[data-testid="baseButton-secondary"] {
+        font-size: 32px !important;
+        height: 60px;
+        width: 60px;
+        border-radius: 50%;
+        background-color: #2e2e2e;
+        border: 2px solid #444;
+        transition: all 0.1s ease-in-out;
+    }
+    button[data-testid="baseButton-secondary"]:hover {
+        border-color: #B4D4FF;
+        transform: scale(1.1);
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-/* --- PHẦN CODE BÀN CỜ CŨ GIỮ NGUYÊN --- */
-.board-container {{
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(5, 1fr);
-    width: 100%;
-    max-width: 420px;
-    height: 420px;
-    margin: 30px auto;
-    background-image: url('data:image/svg+xml;utf8,{svg_bg}');
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    border: 3px solid #555;
-    border-radius: 12px;
-    padding: 8px;
-    background-color: #1e1e1e;
-    box-shadow: 0px 8px 16px rgba(0,0,0,0.4);
-}}
-.cell-link {{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    font-size: 34px;
-    user-select: none;
-    border-radius: 50%;
-}}
-.cell-link:hover {{
-    background-color: rgba(255, 255, 255, 0.15);
-    transform: scale(1.15);
-    transition: all 0.1s ease-in-out;
-}}
-</style>
-"""
-
-board_html = '<div class="board-container">'
+# --- VẼ BÀN CỜ VÀ XỬ LÝ NƯỚC ĐI (Dùng nút bấm native, siêu mượt, không reload) ---
 for r in range(5):
+    cols = st.columns(5)
     for c in range(5):
         val = board_state[r, c]
+        icon = "🔴" if val == 1 else "🔵" if val == -1 else "➕"
         
-        # Thiết lập icon chuẩn bài
-        if val == 1:
-            icon = "🔴"
-        elif val == -1:
-            icon = "🔵"
-        else:
-            icon = "➕"  # Trả về dấu cộng mảnh mai để lộ đường kẻ phía sau
+        if st.session_state.selected_piece == (r, c):
+            icon = "🔥"
             
-        if selected_piece == (r, c):
-            icon = "🔥"  # Hiệu ứng chọn quân bốc lửa
-            
-        board_html += f'<a class="cell-link" href="?click={r}_{c}" target="_self">{icon}</a>'
-
-board_html += '</div>'
-st.markdown(css_style + board_html, unsafe_allow_html=True)
+        with cols[c]:
+            if st.button(icon, key=f"btn_{r}_{c}"):
+                if st.session_state.selected_piece is None:
+                    if val == current_player:
+                        st.session_state.selected_piece = (r, c)
+                        msg_state = "Đã chọn quân. Hãy click ô trống kề cạnh để đi."
+                        save_game_to_firebase(board_state, current_player, msg_state)
+                        st.rerun()
+                else:
+                    sr, sc = st.session_state.selected_piece
+                    if (r, c) == (sr, sc):
+                        st.session_state.selected_piece = None
+                        msg_state = "Đã hủy chọn quân."
+                        save_game_to_firebase(board_state, current_player, msg_state)
+                        st.rerun()
+                    elif val == current_player:
+                        st.session_state.selected_piece = (r, c)
+                        msg_state = "Đã đổi sang quân cờ khác."
+                        save_game_to_firebase(board_state, current_player, msg_state)
+                        st.rerun()
+                    elif val == 0:
+                        # Gọi logic di chuyển từ file co_ganh.py
+                        success, next_msg = game_logic.move(sr, sc, r, c, current_player)
+                        if success:
+                            current_player *= -1  # Đổi lượt chơi
+                        st.session_state.selected_piece = None
+                        save_game_to_firebase(game_logic.board, current_player, next_msg)
+                        st.rerun()
 
 st.write("---")
 if st.button("Làm mới toàn bộ bàn cờ (Reset) 🔄"):
     fresh_game = CoGanh()
-    save_game_to_firebase(fresh_game.board, 1, "Ván mới đã được thiết lập từ đầu!", None)
+    save_game_to_firebase(fresh_game.board, 1, "Ván mới đã được thiết lập từ đầu!")
+    st.session_state.selected_piece = None
     st.rerun()
