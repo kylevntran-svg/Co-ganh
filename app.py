@@ -69,8 +69,7 @@ with col_avatar:
         if current_player == 1:
             st.image("em_yeu_om_ga.jpg", width=120)
         else:
-            st.image("em_yeu_om_hoa.jpg", width=120
-                     )
+            st.image("em_yeu_om_hoa.jpg", width=120)
     except:
         pass
 
