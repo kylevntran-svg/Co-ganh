@@ -56,15 +56,14 @@ if 'selected_piece' not in st.session_state:
 st.title("Thưởng trà và cầm kì với Vịt 💖")
 
 if current_player == 1:
-    st.subheader("🔴 Lượt của ĐỎ (Bạn)")
+    st.subheader("🔴 Lượt của ĐỎ")
 else:
-    st.subheader("🔵 Lượt của XANH (Thảo)")
+    st.subheader("🔵 Lượt của XANH")
 
 st.info(msg_state)
 st.write("---")
 
-# --- MÃ HÓA CỨNG HÌNH NỀN BÀN CỜ (ĐÚNG THEO BẢN VẼ TAY CỦA KHANG) ---
-# Đã xóa toàn bộ 4 đường viền ngoài cùng. Chỉ giữ lại đường nội bộ và đường chéo!
+# --- MÃ HÓA HÌNH NỀN BÀN CỜ (Đúng chuẩn bản vẽ của bạn: Không có khung vuông ngoài) ---
 svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
   <g stroke="#666666" stroke-width="3">
     <!-- 3 Đường Ngang Bên Trong -->
@@ -88,43 +87,52 @@ svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
-# --- CSS TOÁN HỌC: ÉP KHUNG TUYỆT ĐỐI ---
+# --- CSS: ÉP QUÂN CỜ THÀNH HÌNH VUÔNG CHUẨN XÁC ---
 st.markdown(f"""
     <style>
     h1, h2, h3, h4, h5, h6, p, span, caption, div[data-testid="stMarkdownContainer"] p {{
         color: #B4D4FF !important;
     }}
     
-    /* 1. Loại bỏ mọi khoảng trống dư thừa của Streamlit */
-    div.element-container:has(.board-bg) {{
-        margin: 0 !important;
-        padding: 0 !important;
-    }}
-    div[data-testid="stVerticalBlock"]:has(button[data-testid="baseButton-secondary"]) {{
-        gap: 0 !important;
-    }}
-
-    /* 2. Ép hàng cờ (Row) thành khối đúng 400px x 80px */
-    div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) {{
+    /* 1. Ép toàn bộ khung bàn cờ thành Hình Vuông 400x400 và lót nền nét vẽ SVG */
+    div[data-testid="stVerticalBlock"]:has(.board-wrapper):not(:has(div[data-testid="stVerticalBlock"]:has(.board-wrapper))) {{
         width: 400px !important;
         min-width: 400px !important;
         max-width: 400px !important;
+        height: 400px !important;
+        margin: 20px auto !important; /* Căn giữa màn hình */
+        background-image: url('{bg_url}') !important;
+        background-size: 400px 400px !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        background-color: transparent !important; /* Xóa nền xám, chỉ để lại nét kẻ */
+    }}
+
+    /* 2. Ẩn điểm neo để không chiếm chỗ */
+    div.element-container:has(.board-wrapper) {{
+        display: none !important;
+    }}
+
+    /* 3. Ép mỗi Hàng cờ cao đúng 80px */
+    div[data-testid="stVerticalBlock"]:has(.board-wrapper) div[data-testid="stHorizontalBlock"] {{
+        width: 400px !important;
         height: 80px !important;
         min-height: 80px !important;
         max-height: 80px !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
         padding: 0 !important;
         gap: 0 !important;
-        z-index: 10 !important;
-        position: relative !important;
     }}
 
-    /* 3. Ép ô cờ (Column) thành ô vuông đúng 80px x 80px */
-    div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) div[data-testid="column"] {{
+    /* 4. CHÌA KHÓA CỦA BẠN ĐÂY: Vô hiệu hóa Flexbox, ép mỗi Cột cờ thành ô vuông 80x80px */
+    div[data-testid="stVerticalBlock"]:has(.board-wrapper) div[data-testid="column"] {{
         width: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
         height: 80px !important;
+        flex: none !important; /* Lệnh "Cấm Streamlit tự động giãn ngang" */
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -132,7 +140,7 @@ st.markdown(f"""
         padding: 0 !important;
     }}
 
-    /* 4. Định hình nút cờ thành vòng tròn hoàn hảo 46x46px */
+    /* 5. Nặn quân cờ thành hình tròn, bám chặt vào đường nối */
     button[data-testid="baseButton-secondary"] {{
         width: 46px !important;
         height: 46px !important;
@@ -141,7 +149,7 @@ st.markdown(f"""
         max-width: 46px !important;
         max-height: 46px !important;
         border-radius: 50% !important;
-        background-color: #212121 !important; /* Nền tối để đè lên các đường nối */
+        background-color: #1e1e1e !important; 
         border: 2px solid #555 !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -165,25 +173,10 @@ st.markdown(f"""
 
 # --- VẼ BÀN CỜ ---
 with st.container():
-    # 📌 TẤM NỀN BÀN CỜ ĐƯỢC GIẬT NGƯỢC LÊN TRÊN (-400px)
-    # Lưới nút bấm ở dưới sẽ tự động đè lên và ăn khớp từng tâm điểm
-    st.markdown(f"""
-        <div class="board-bg" style="
-            width: 400px;
-            height: 400px;
-            background-image: url('{bg_url}');
-            background-size: 400px 400px;
-            background-position: center;
-            background-repeat: no-repeat;
-            margin: 0 auto -400px auto; 
-            position: relative;
-            z-index: 0;
-            pointer-events: none;
-        "></div>
-    """, unsafe_allow_html=True)
-
+    # Điểm neo tàng hình giúp CSS nhắm đúng mục tiêu
+    st.markdown('<div class="board-wrapper"></div>', unsafe_allow_html=True)
+    
     for r in range(5):
-        # Thiết lập ma trận hàng và cột (Đã bị CSS ở trên ép cứng kích thước)
         cols = st.columns(5)
         for c in range(5):
             val = board_state[r, c]
