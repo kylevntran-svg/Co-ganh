@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thưởng trà và cầm kì với Vịt 💖</title>
+    <style>
+        body {
+            background-color: #0e1117;
+            color: #B4D4FF;
+            font-family: sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .board-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 40px auto;
+        }
+        /* Hình nền SVG nằm chìm bên dưới */
+        .svg-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+        }
+        /* CSS Grid 5x5 hoàn hảo đè chính xác lên SVG */
+        .grid-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            z-index: 2;
+        }
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        /* Định dạng quân cờ tự do không bị Streamlit can thiệp */
+        .piece {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: #1a1a1a;
+            border: 2px solid #555;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+        .piece:hover {
+            transform: scale(1.15);
+            border-color: #B4D4FF;
+        }
+        .piece.selected {
+            border-color: #ff4b4b;
+            box-shadow: 0 0 15px rgba(255, 75, 75, 0.5);
+        }
+        button.reset {
+            background-color: #ff4b4b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: opacity 0.2s;
+        }
+        button.reset:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <h1>Thưởng trà và cầm kì với Vịt 💖</h1>
+    <h3 id="turn-indicator"></h3>
+    <p id="message-box"></p>
+    <hr style="border-color: #333; max-width: 600px;">
+
+    <div class="board-container">
+        <!-- Mã SVG chuẩn xác kết nối A-E / 1-5 -->
+        <svg class="svg-bg" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <g stroke="#666666" stroke-width="0.8">
+                <line x1="10" y1="10" x2="90" y2="10"/>
+                <line x1="10" y1="30" x2="90" y2="30"/>
+                <line x1="10" y1="50" x2="90" y2="50"/>
+                <line x1="10" y1="70" x2="90" y2="70"/>
+                <line x1="10" y1="90" x2="90" y2="90"/>
+                <line x1="10" y1="10" x2="10" y2="90"/>
+                <line x1="30" y1="10" x2="30" y2="90"/>
+                <line x1="50" y1="10" x2="50" y2="90"/>
+                <line x1="70" y1="10" x2="70" y2="90"/>
+                <line x1="90" y1="10" x2="90" y2="90"/>
+                <line x1="10" y1="10" x2="90" y2="90"/>
+                <line x1="90" y1="10" x2="10" y2="90"/>
+                <line x1="50" y1="10" x2="10" y2="50"/>
+                <line x1="50" y1="10" x2="90" y2="50"/>
+                <line x1="10" y1="50" x2="50" y2="90"/>
+                <line x1="90" y1="50" x2="50" y2="90"/>
+                <line x1="50" y1="90" x2="10" y2="50"/>
+                <line x1="50" y1="90" x2="90" y2="50"/>
+                <line x1="10" y1="50" x2="50" y2="10"/>
+                <line x1="90" y1="50" x2="50" y2="10"/>
+            </g>
+        </svg>
+        <!-- Lưới Ma Trận -->
+        <div class="grid-container" id="board"></div>
+    </div>
+
+    <button class="reset" onclick="resetGame()">Làm mới toàn bộ bàn cờ (Reset) 🔄</button>
+
+    <script>
+        async function fetchState() {
+            let res = await fetch('/state');
+            let data = await res.json();
+            render(data);
+        }
+
+        async function clickCell(r, c) {
+            let res = await fetch('/click', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({r, c})
+            });
+            let data = await res.json();
+            render(data);
+        }
+
+        async function resetGame() {
+            let res = await fetch('/reset', { method: 'POST' });
+            let data = await res.json();
+            render(data);
+        }
+
+        function render(data) {
+            document.getElementById('turn-indicator').innerHTML = 
+                data.current_player === 1 ? "🔴 Lượt của ĐỎ" : "🔵 Lượt của XANH";
+            document.getElementById('message-box').innerText = data.message;
+
+            const board = document.getElementById('board');
+            board.innerHTML = "";
+            
+            for(let r=0; r<5; r++) {
+                for(let c=0; c<5; c++) {
+                    let cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    let val = data.board[r][c];
+                    let btn = document.createElement('div');
+                    btn.className = 'piece';
+                    
+                    if(data.selected && data.selected[0] === r && data.selected[1] === c) {
+                        btn.classList.add('selected');
+                        btn.innerText = "🔥";
+                    } else {
+                        if (val === 1) btn.innerText = "🔴";
+                        else if (val === -1) btn.innerText = "🔵";
+                        else btn.innerText = " ";
+                    }
+
+                    btn.onclick = () => clickCell(r, c);
+                    cell.appendChild(btn);
+                    board.appendChild(cell);
+                }
+            }
+        }
+
+        // Tự động đồng bộ Firebase mỗi 2 giây
+        setInterval(fetchState, 2000);
+        fetchState();
+    </script>
+</body>
+</html>
