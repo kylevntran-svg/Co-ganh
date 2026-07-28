@@ -56,9 +56,9 @@ if 'selected_piece' not in st.session_state:
 st.title("Thưởng trà và cầm kì với Vịt 💖")
 
 if current_player == 1:
-    st.subheader("🔴 Lượt của ĐỎ")
+    st.subheader("🔴 Lượt của ĐỎ (Bạn)")
 else:
-    st.subheader("🔵 Lượt của XANH")
+    st.subheader("🔵 Lượt của XANH (Thảo)")
 
 st.info(msg_state)
 st.write("---")
@@ -85,7 +85,7 @@ svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
-# --- CSS THUẦN TÚY (Tương thích mọi trình duyệt web) ---
+# --- CSS ÉP KHUNG TẬP TRUNG (Không dùng mẹo sinh nền tự động nữa) ---
 st.markdown(f"""
     <style>
     /* Chữ màu xanh pastel */
@@ -93,21 +93,34 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* 1. ÉP TẤT CẢ CÁC HÀNG (ROW) THÀNH CAO ĐÚNG 80px, RỘNG 400px */
-    div[data-testid="stHorizontalBlock"] {{
+    /* 1. Tắt khoảng cách gap mặc định của khung chứa bàn cờ để các hàng xếp khít nhau */
+    div[data-testid="stVerticalBlock"]:has(.board-bg-box):not(:has(div[data-testid="stVerticalBlock"]:has(.board-bg-box))) {{
+        gap: 0 !important;
+    }}
+    
+    /* Ép thẻ p chứa ảnh nền không có khoảng trống thừa */
+    div.element-container:has(.board-bg-box) p {{
+        margin: 0 !important;
+        padding: 0 !important;
+    }}
+
+    /* 2. ÉP HÀNG BÀN CỜ ĐÚNG 400px CAO 80px VÀ CĂN GIỮA */
+    div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) {{
         width: 400px !important;
+        min-width: 400px !important;
+        max-width: 400px !important;
         height: 80px !important;
         min-height: 80px !important;
         max-height: 80px !important;
-        margin: 0 auto !important;
+        margin: 0 auto !important; 
         padding: 0 !important;
         gap: 0 !important;
-        position: relative !important;
         z-index: 10 !important;
+        position: relative !important;
     }}
 
-    /* 2. ÉP TẤT CẢ CÁC CỘT TRONG HÀNG RỘNG ĐÚNG 80px */
-    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
+    /* 3. ĐỊNH HÌNH CỘT ĐÚNG 80x80px */
+    div[data-testid="stHorizontalBlock"]:has(button[data-testid="baseButton-secondary"]) div[data-testid="column"] {{
         width: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
@@ -119,34 +132,15 @@ st.markdown(f"""
         align-items: center !important;
     }}
 
-    /* 3. VẼ NỀN BÀN CỜ 400x400 TỪ HÀNG ĐẦU TIÊN PHỦ XUỐNG ĐÁY */
-    div[data-testid="stHorizontalBlock"]:first-of-type::before {{
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 400px;
-        height: 400px;
-        background-image: url('{bg_url}');
-        background-size: 100% 100%;
-        border: 2px solid #555;
-        border-radius: 12px;
-        background-color: #1e1e1e;
-        box-shadow: 0px 8px 16px rgba(0,0,0,0.5);
-        z-index: -1;
-        pointer-events: none;
-        box-sizing: border-box;
-    }}
-
-    /* 4. NẶN TẤT CẢ NÚT BẤM (CHỪA NÚT RESET) THÀNH HÌNH TRÒN 46x46px */
+    /* 4. NẶN NÚT QUÂN CỜ TRÒN HOÀN HẢO 50x50px */
     button[data-testid="baseButton-secondary"] {{
-        width: 46px !important;
-        height: 46px !important;
-        min-width: 46px !important;
-        min-height: 46px !important;
+        width: 50px !important;
+        height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
         border-radius: 50% !important;
         padding: 0 !important;
-        margin: 0 auto !important;
+        margin: 0 !important; 
         background-color: #2e2e2e !important;
         border: 2px solid #444 !important;
         display: flex !important;
@@ -154,61 +148,89 @@ st.markdown(f"""
         align-items: center !important;
         transition: all 0.1s ease-in-out !important;
     }}
+    
     button[data-testid="baseButton-secondary"]:hover {{
         border-color: #B4D4FF !important;
         transform: scale(1.1) !important;
     }}
+    
     button[data-testid="baseButton-secondary"] p {{
-        font-size: 20px !important;
+        font-size: 22px !important;
         margin: 0 !important;
         line-height: 1 !important;
+    }}
+    
+    /* Xóa margin mặc định của Streamlit xung quanh nút */
+    div.element-container:has(button[data-testid="baseButton-secondary"]) {{
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }}
     </style>
 """, unsafe_allow_html=True)
 
 # --- VẼ BÀN CỜ ---
-for r in range(5):
-    # Tạo 5 cột sát rạt nhau
-    cols = st.columns(5)
-    for c in range(5):
-        val = board_state[r, c]
-        icon = "🔴" if val == 1 else "🔵" if val == -1 else " "
-        
-        if st.session_state.selected_piece == (r, c):
-            icon = "🔥"
+with st.container():
+    # CHÌA KHÓA MỚI: Tấm nền độc lập được kéo ngược lên 400px! (margin-bottom: -400px)
+    # Lưới nút bấm phía dưới sẽ tự động được kéo lên xếp đè vừa khít tấm nền này.
+    st.markdown(f"""
+        <div class="board-bg-box" style="
+            width: 400px;
+            height: 400px;
+            background-image: url('{bg_url}');
+            background-size: 100% 100%;
+            border: 2px solid #555;
+            border-radius: 12px;
+            background-color: #1e1e1e;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.5);
+            margin: 0 auto -400px auto; 
+            position: relative;
+            z-index: 0;
+            pointer-events: none;
+        "></div>
+    """, unsafe_allow_html=True)
+
+    for r in range(5):
+        cols = st.columns(5)
+        for c in range(5):
+            val = board_state[r, c]
+            icon = "🔴" if val == 1 else "🔵" if val == -1 else " "
             
-        with cols[c]:
-            # Các nút cờ dùng style secondary, sẽ tự động bị ép tròn!
-            if st.button(icon, key=f"btn_{r}_{c}"):
-                if st.session_state.selected_piece is None:
-                    if val == current_player:
-                        st.session_state.selected_piece = (r, c)
-                        msg_state = "Đã chọn quân. Hãy click ô trống kề cạnh để đi."
-                        save_game_to_firebase(board_state, current_player, msg_state)
-                        st.rerun()
-                else:
-                    sr, sc = st.session_state.selected_piece
-                    if (r, c) == (sr, sc):
-                        st.session_state.selected_piece = None
-                        msg_state = "Đã hủy chọn quân."
-                        save_game_to_firebase(board_state, current_player, msg_state)
-                        st.rerun()
-                    elif val == current_player:
-                        st.session_state.selected_piece = (r, c)
-                        msg_state = "Đã đổi sang quân cờ khác."
-                        save_game_to_firebase(board_state, current_player, msg_state)
-                        st.rerun()
-                    elif val == 0:
-                        success, next_msg = game_logic.move(sr, sc, r, c, current_player)
-                        if success:
-                            current_player *= -1
-                        st.session_state.selected_piece = None
-                        save_game_to_firebase(game_logic.board, current_player, next_msg)
-                        st.rerun()
+            if st.session_state.selected_piece == (r, c):
+                icon = "🔥"
+                
+            with cols[c]:
+                if st.button(icon, key=f"btn_{r}_{c}"):
+                    if st.session_state.selected_piece is None:
+                        if val == current_player:
+                            st.session_state.selected_piece = (r, c)
+                            msg_state = "Đã chọn quân. Hãy click ô trống kề cạnh để đi."
+                            save_game_to_firebase(board_state, current_player, msg_state)
+                            st.rerun()
+                    else:
+                        sr, sc = st.session_state.selected_piece
+                        if (r, c) == (sr, sc):
+                            st.session_state.selected_piece = None
+                            msg_state = "Đã hủy chọn quân."
+                            save_game_to_firebase(board_state, current_player, msg_state)
+                            st.rerun()
+                        elif val == current_player:
+                            st.session_state.selected_piece = (r, c)
+                            msg_state = "Đã đổi sang quân cờ khác."
+                            save_game_to_firebase(board_state, current_player, msg_state)
+                            st.rerun()
+                        elif val == 0:
+                            success, next_msg = game_logic.move(sr, sc, r, c, current_player)
+                            if success:
+                                current_player *= -1
+                            st.session_state.selected_piece = None
+                            save_game_to_firebase(game_logic.board, current_player, next_msg)
+                            st.rerun()
 
 st.write("---")
 
-# Nút Reset dùng style primary nên CSS hình tròn sẽ tha cho nó
 if st.button("Làm mới toàn bộ bàn cờ (Reset) 🔄", type="primary"):
     fresh_game = CoGanh()
     save_game_to_firebase(fresh_game.board, 1, "Đỏ đi trước.")
