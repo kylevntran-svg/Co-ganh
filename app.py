@@ -63,31 +63,53 @@ else:
 st.info(msg_state)
 st.write("---")
 
-# --- MÃ HÓA HÌNH NỀN ĐẦY ĐỦ A-E CHO TỪNG HÀNG 1 ĐẾN 5 ---
+# --- MÃ HÓA HÌNH NỀN SVG CHI TIẾT THEO ĐÚNG QUY LUẬT NỐI ĐƯỜNG CỦA BẠN ---
 svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
   <g stroke="#666666" stroke-width="0.8">
-    <!-- Hàng ngang 1 đến 5 -->
-    <line x1="10" y1="10" x2="90" y2="10"/>
-    <line x1="10" y1="30" x2="90" y2="30"/>
-    <line x1="10" y1="50" x2="90" y2="50"/>
-    <line x1="10" y1="70" x2="90" y2="70"/>
-    <line x1="10" y1="90" x2="90" y2="90"/>
+    <!-- Hàng 1 (A1-E1) và kết nối -->
+    <line x1="10" y1="10" x2="30" y2="10"/>
+    <line x1="30" y1="10" x2="50" y2="10"/>
+    <line x1="50" y1="10" x2="70" y2="10"/>
+    <line x1="70" y1="10" x2="90" y2="10"/>
     
-    <!-- Cột dọc A đến E -->
+    <!-- Hàng 2 (A2-E2) và kết nối -->
+    <line x1="10" y1="30" x2="30" y2="30"/>
+    <line x1="30" y1="30" x2="50" y2="30"/>
+    <line x1="50" y1="30" x2="70" y2="30"/>
+    <line x1="70" y1="30" x2="90" y2="30"/>
+    
+    <!-- Hàng 3 (A3-E3) và kết nối -->
+    <line x1="10" y1="50" x2="30" y2="50"/>
+    <line x1="30" y1="50" x2="50" y2="50"/>
+    <line x1="50" y1="50" x2="70" y2="50"/>
+    <line x1="70" y1="50" x2="90" y2="50"/>
+    
+    <!-- Hàng 4 (A4-E4) và kết nối -->
+    <line x1="10" y1="70" x2="30" y2="70"/>
+    <line x1="30" y1="70" x2="50" y2="70"/>
+    <line x1="50" y1="70" x2="70" y2="70"/>
+    <line x1="70" y1="70" x2="90" y2="70"/>
+    
+    <!-- Hàng 5 (A5-E5) và kết nối -->
+    <line x1="10" y1="90" x2="30" y2="90"/>
+    <line x1="30" y1="90" x2="50" y2="90"/>
+    <line x1="50" y1="90" x2="70" y2="90"/>
+    <line x1="70" y1="90" x2="90" y2="90"/>
+
+    <!-- Dọc 1 đến 5 (A-E) -->
     <line x1="10" y1="10" x2="10" y2="90"/>
     <line x1="30" y1="10" x2="30" y2="90"/>
     <line x1="50" y1="10" x2="50" y2="90"/>
     <line x1="70" y1="10" x2="70" y2="90"/>
     <line x1="90" y1="10" x2="90" y2="90"/>
-    
-    <!-- Các đường chéo quy luật Cờ Gánh -->
+
+    <!-- Các đường chéo theo chuẩn quy luật Cờ Gánh -->
     <line x1="10" y1="10" x2="90" y2="90"/>
     <line x1="90" y1="10" x2="10" y2="90"/>
     <line x1="50" y1="10" x2="10" y2="50"/>
     <line x1="50" y1="10" x2="90" y2="50"/>
     <line x1="10" y1="50" x2="50" y2="90"/>
     <line x1="90" y1="50" x2="50" y2="90"/>
-    
     <line x1="50" y1="90" x2="10" y2="50"/>
     <line x1="50" y1="90" x2="90" y2="50"/>
     <line x1="10" y1="50" x2="50" y2="10"/>
@@ -97,28 +119,7 @@ svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" pres
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
-# --- TẠO TỌA ĐỘ TUYỆT ĐỐI CHO 25 Ô ---
-css_positions = ""
-for i in range(25):
-    r = i // 5
-    c = i % 5
-    top = 10 + r * 20
-    left = 10 + c * 20
-    
-    css_positions += f"""
-    .co-ganh-board div.element-container:nth-of-type({i+1}) {{
-        position: absolute !important;
-        top: {top}% !important;
-        left: {left}% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 45px !important;
-        height: 45px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        z-index: 10 !important;
-    }}
-    """
-
+# --- CSS GRID CÁCH LY CHUẨN XÁC TUYỆT ĐỐI ---
 st.markdown(f"""
     <style>
     /* Chữ màu xanh pastel */
@@ -126,9 +127,11 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* KHUNG BÀN CỜ ĐƯỢC CÁCH LY TUYỆT ĐỐI */
+    /* 1. KHUNG BÀN CỜ CHÍNH: Dùng CSS Grid ma trận 5x5 chuẩn chỉnh */
     .co-ganh-board {{
-        position: relative !important;
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-rows: repeat(5, 1fr) !important;
         width: 400px !important;
         height: 400px !important;
         margin: 20px auto !important;
@@ -136,12 +139,22 @@ st.markdown(f"""
         background-size: 100% 100% !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
+        padding: 0 !important;
+        gap: 0 !important;
     }}
 
-    /* Bơm tọa độ 25 quân cờ vào trong khung */
-    {css_positions}
+    /* 2. Căn chỉnh các phần tử container con bên trong lưới */
+    .co-ganh-board > div.element-container {{
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }}
 
-    /* Định hình nút bấm quân cờ */
+    /* 3. Định hình nút bấm quân cờ hình tròn, bám chính xác vào giao điểm */
     .co-ganh-board button {{
         width: 45px !important;
         height: 45px !important;
@@ -170,10 +183,12 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- VẼ BÀN CỜ BÊN TRONG CONTAINER CÁCH LY (.co-ganh-board) ---
+# --- VẼ BÀN CỜ ---
 with st.container():
+    # Mở khung chứa cách ly
     st.markdown('<div class="co-ganh-board">', unsafe_allow_html=True)
     
+    # Vòng lặp rải 25 quân cờ trực tiếp vào lưới Grid 5x5
     for r in range(5):
         for c in range(5):
             val = board_state[r, c]
@@ -209,6 +224,7 @@ with st.container():
                         save_game_to_firebase(game_logic.board, current_player, next_msg)
                         st.rerun()
                         
+    # Đóng khung chứa
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.write("---")
