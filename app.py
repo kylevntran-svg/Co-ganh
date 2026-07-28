@@ -63,22 +63,17 @@ else:
 st.info(msg_state)
 st.write("---")
 
-# --- MÃ HÓA HÌNH NỀN THEO TỌA ĐỘ MA TRẬN A1, B1 (Thang đo 0-100) ---
-# Tọa độ các tâm chính xác là: 10, 30, 50, 70, 90
+# --- MÃ HÓA HÌNH NỀN THEO THANG ĐO 100x100 ---
 svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
   <g stroke="#666666" stroke-width="0.8">
-    <!-- 3 Đường Ngang -->
     <line x1="10" y1="30" x2="90" y2="30"/>
     <line x1="10" y1="50" x2="90" y2="50"/>
     <line x1="10" y1="70" x2="90" y2="70"/>
-    <!-- 3 Đường Dọc -->
     <line x1="30" y1="10" x2="30" y2="90"/>
     <line x1="50" y1="10" x2="50" y2="90"/>
     <line x1="70" y1="10" x2="70" y2="90"/>
-    <!-- Chéo Chính (Đường X lớn) -->
     <line x1="10" y1="10" x2="90" y2="90"/>
     <line x1="90" y1="10" x2="10" y2="90"/>
-    <!-- Chéo Phụ (Hình Thoi) -->
     <line x1="50" y1="10" x2="10" y2="50"/>
     <line x1="50" y1="10" x2="90" y2="50"/>
     <line x1="10" y1="50" x2="50" y2="90"/>
@@ -88,7 +83,30 @@ svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" pres
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
-# --- CSS: ÉP KHUNG TỰ ĐỘNG CO GIÃN THÀNH HÌNH VUÔNG ---
+# --- TÍNH TOÁN MA TRẬN A1, B1... THEO CÔNG THỨC CỦA BẠN ---
+css_positions = ""
+for i in range(25):
+    r = i // 5
+    c = i % 5
+    # Tọa độ tuyệt đối % (10, 30, 50, 70, 90)
+    top = 10 + r * 20
+    left = 10 + c * 20
+    
+    # nth-child bắt đầu từ 2 (vì số 1 là the div board-marker)
+    css_positions += f"""
+    div[data-testid="stVerticalBlock"]:has(.board-marker) > div.element-container:nth-child({i+2}) {{
+        position: absolute !important;
+        top: {top}% !important;
+        left: {left}% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 50px !important;
+        height: 50px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 10 !important;
+    }}
+    """
+
 st.markdown(f"""
     <style>
     /* Chữ màu xanh pastel */
@@ -96,52 +114,32 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* Ẩn thẻ marker */
+    /* 1. Ẩn điểm đánh dấu */
     div.element-container:has(.board-marker) {{
         display: none !important;
     }}
 
-    /* 1. KHUNG BÀN CỜ: Luôn là hình vuông hoàn hảo (aspect-ratio: 1/1) */
-    div[data-testid*="stVerticalBlock"]:has(> div.element-container .board-marker) {{
-        width: 100% !important;
-        max-width: 500px !important;
-        aspect-ratio: 1 / 1 !important;
+    /* 2. KHUNG BÀN CỜ CHÍNH: Ép thành hình vuông tĩnh 400x400 */
+    div[data-testid="stVerticalBlock"]:has(.board-marker) {{
+        position: relative !important;
+        width: 400px !important;
+        height: 400px !important;
         margin: 20px auto !important;
         background-image: url('{bg_url}') !important;
         background-size: 100% 100% !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
-        padding: 0 !important;
-        gap: 0 !important;
     }}
 
-    /* 2. CÁC HÀNG: Chia đều 5 hàng, mỗi hàng chiếm đúng 20% chiều cao */
-    div[data-testid*="stVerticalBlock"]:has(> div.element-container .board-marker) > div[data-testid*="stHorizontalBlock"] {{
-        height: 20% !important;
-        min-height: 20% !important;
-        max-height: 20% !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        gap: 0 !important;
-    }}
+    /* 3. Bơm toàn bộ 25 tọa độ đã tính toán vào đây */
+    {css_positions}
 
-    /* 3. CÁC CỘT: Chia đều 5 cột, mỗi cột chiếm đúng 20% chiều rộng */
-    div[data-testid*="stVerticalBlock"]:has(> div.element-container .board-marker) div[data-testid*="column"] {{
-        width: 20% !important;
-        flex: 1 1 20% !important;
-        height: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }}
-
-    /* 4. NÚT CỜ: Đặt cố định kích thước, luôn nằm chính giữa ô 20x20% */
-    button[data-testid*="secondary"] {{
-        width: 48px !important;
-        height: 48px !important;
+    /* 4. Định hình nút cờ (Chỉ áp dụng cho các nút bên trong bàn cờ) */
+    div[data-testid="stVerticalBlock"]:has(.board-marker) button {{
+        width: 50px !important;
+        height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
         border-radius: 50% !important;
         background-color: #1a1a1a !important; 
         border: 2px solid #555 !important;
@@ -150,14 +148,13 @@ st.markdown(f"""
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        z-index: 2 !important; 
         transition: transform 0.1s ease-in-out !important;
     }}
-    button[data-testid*="secondary"]:hover {{
+    div[data-testid="stVerticalBlock"]:has(.board-marker) button:hover {{
         border-color: #B4D4FF !important;
         transform: scale(1.15) !important;
     }}
-    button[data-testid*="secondary"] p {{
+    div[data-testid="stVerticalBlock"]:has(.board-marker) button p {{
         font-size: 24px !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -166,14 +163,13 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- VẼ BÀN CỜ ---
+# --- VẼ BÀN CỜ (Không dùng st.columns nữa) ---
 with st.container():
-    # Điểm đánh dấu (Marker) giúp CSS nhận diện chính xác vùng bàn cờ
+    # Điểm neo giúp CSS tìm đúng khung bàn cờ
     st.markdown('<div class="board-marker"></div>', unsafe_allow_html=True)
 
-    # In 25 nút cờ, tự động được CSS ép vào đúng tọa độ lưới phần trăm
+    # Đổ 25 quân cờ liên tục. CSS sẽ tự động bốc từng quân cờ ném vào đúng tọa độ A1, B1...
     for r in range(5):
-        cols = st.columns(5)
         for c in range(5):
             val = board_state[r, c]
             icon = "🔴" if val == 1 else "🔵" if val == -1 else " "
@@ -181,33 +177,32 @@ with st.container():
             if st.session_state.selected_piece == (r, c):
                 icon = "🔥"
                 
-            with cols[c]:
-                if st.button(icon, key=f"btn_{r}_{c}"):
-                    if st.session_state.selected_piece is None:
-                        if val == current_player:
-                            st.session_state.selected_piece = (r, c)
-                            msg_state = "Đã chọn quân. Hãy click ô trống kề cạnh để đi."
-                            save_game_to_firebase(board_state, current_player, msg_state)
-                            st.rerun()
-                    else:
-                        sr, sc = st.session_state.selected_piece
-                        if (r, c) == (sr, sc):
-                            st.session_state.selected_piece = None
-                            msg_state = "Đã hủy chọn quân."
-                            save_game_to_firebase(board_state, current_player, msg_state)
-                            st.rerun()
-                        elif val == current_player:
-                            st.session_state.selected_piece = (r, c)
-                            msg_state = "Đã đổi sang quân cờ khác."
-                            save_game_to_firebase(board_state, current_player, msg_state)
-                            st.rerun()
-                        elif val == 0:
-                            success, next_msg = game_logic.move(sr, sc, r, c, current_player)
-                            if success:
-                                current_player *= -1
-                            st.session_state.selected_piece = None
-                            save_game_to_firebase(game_logic.board, current_player, next_msg)
-                            st.rerun()
+            if st.button(icon, key=f"btn_{r}_{c}"):
+                if st.session_state.selected_piece is None:
+                    if val == current_player:
+                        st.session_state.selected_piece = (r, c)
+                        msg_state = "Đã chọn quân. Hãy click ô trống kề cạnh để đi."
+                        save_game_to_firebase(board_state, current_player, msg_state)
+                        st.rerun()
+                else:
+                    sr, sc = st.session_state.selected_piece
+                    if (r, c) == (sr, sc):
+                        st.session_state.selected_piece = None
+                        msg_state = "Đã hủy chọn quân."
+                        save_game_to_firebase(board_state, current_player, msg_state)
+                        st.rerun()
+                    elif val == current_player:
+                        st.session_state.selected_piece = (r, c)
+                        msg_state = "Đã đổi sang quân cờ khác."
+                        save_game_to_firebase(board_state, current_player, msg_state)
+                        st.rerun()
+                    elif val == 0:
+                        success, next_msg = game_logic.move(sr, sc, r, c, current_player)
+                        if success:
+                            current_player *= -1
+                        st.session_state.selected_piece = None
+                        save_game_to_firebase(game_logic.board, current_player, next_msg)
+                        st.rerun()
 
 st.write("---")
 
