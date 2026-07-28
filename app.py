@@ -86,6 +86,7 @@ svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
+# --- CSS THIẾT QUÂN LUẬT: KHÓA CỨNG MỌI KÍCH THƯỚC ---
 st.markdown(f"""
     <style>
     /* Chữ màu xanh pastel */
@@ -93,73 +94,96 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* CHỈ NHẮM VÀO NÚT QUÂN CỜ */
-    button[data-testid="baseButton-secondary"] {{
-        height: 50px !important;
+    /* 1. KHÓA CỨNG KHUNG BÀN CỜ ĐÚNG 400x400 */
+    div[data-testid="stVerticalBlock"]:has(.board-anchor) {{
+        background-image: url("{bg_url}") !important;
+        background-size: 400px 400px !important;
+        background-position: center bottom !important; 
+        background-repeat: no-repeat !important;
+        width: 400px !important;
+        min-width: 400px !important;
+        max-width: 400px !important;
+        height: auto !important;
+        margin: 20px auto !important;
+        padding: 0 !important;
+        border: 3px solid #555 !important;
+        border-radius: 12px !important;
+        background-color: #1e1e1e !important;
+        box-shadow: 0px 8px 16px rgba(0,0,0,0.5) !important;
+        gap: 0 !important; /* Ép Streamlit không được chèn khoảng trống thừa */
+    }}
+    
+    /* Xóa khoảng trống của điểm neo (Anchor) */
+    div[data-testid="stVerticalBlock"]:has(.board-anchor) > div:first-child {{
+        height: 0px !important;
+        min-height: 0px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }}
+
+    /* 2. KHÓA CỨNG MỖI HÀNG (ROW) CAO ĐÚNG 80PX VÀ KHÔNG KHOẢNG HỞ */
+    div[data-testid="stVerticalBlock"]:has(.board-anchor) div[data-testid="stHorizontalBlock"] {{
+        width: 400px !important;
+        height: 80px !important;
+        min-height: 80px !important;
+        max-height: 80px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important; /* Xóa kẽ hở giữa các cột */
+    }}
+    
+    /* 3. KHÓA CỨNG MỖI Ô CỜ RỘNG ĐÚNG 80PX */
+    div[data-testid="stVerticalBlock"]:has(.board-anchor) div[data-testid="column"] {{
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+        height: 80px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }}
+
+    /* 4. ÉP MỌI NÚT BẤM TRONG BÀN CỜ PHẢI LÀ HÌNH TRÒN 50x50 */
+    div[data-testid="stVerticalBlock"]:has(.board-anchor) button {{
         width: 50px !important;
-        min-height: 50px !important;
+        height: 50px !important;
         min-width: 50px !important;
+        min-height: 50px !important;
         border-radius: 50% !important;
         padding: 0 !important;
+        margin: 0 !important;
         background-color: #2e2e2e !important;
         border: 2px solid #444 !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        margin: auto !important;
         transition: all 0.1s ease-in-out !important;
     }}
-    button[data-testid="baseButton-secondary"] p {{
-        font-size: 24px !important;
-        margin: 0 !important;
-        line-height: 1 !important;
-    }}
-    button[data-testid="baseButton-secondary"]:hover {{
+    div[data-testid="stVerticalBlock"]:has(.board-anchor) button:hover {{
         border-color: #B4D4FF !important;
         transform: scale(1.1) !important;
     }}
-
-    /* KHOANH VÙNG CHUẨN XÁC NỀN BÀN CỜ */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .board-anchor) {{
-        background-image: url("{bg_url}");
-        background-size: 100% 100%;
-        background-position: center;
-        background-repeat: no-repeat;
-        width: 400px !important;
-        max-width: 400px !important;
-        height: 400px !important;
-        margin: 20px auto !important;
-        border: 3px solid #555 !important;
-        border-radius: 12px !important;
-        background-color: #1e1e1e !important;
-        padding: 0 !important;
-        box-shadow: 0px 8px 16px rgba(0,0,0,0.5) !important;
-        overflow: hidden !important;
-    }}
     
-    /* CHIA LƯỚI 5x5 ĐỀU NHAU TĂM TẮP */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .board-anchor) div[data-testid="stHorizontalBlock"] {{
-        height: 80px !important;
-        min-height: 80px !important;
+    /* Căn chỉnh icon bên trong nút bấm */
+    div[data-testid="stVerticalBlock"]:has(.board-anchor) button p {{
+        font-size: 22px !important;
         margin: 0 !important;
         padding: 0 !important;
-        gap: 0 !important;
-    }}
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .board-anchor) div[data-testid="column"] {{
-        padding: 0 !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
+        line-height: 1 !important;
     }}
     </style>
 """, unsafe_allow_html=True)
 
 # --- VẼ BÀN CỜ ---
 with st.container():
-    st.markdown('<span class="board-anchor" style="display:none;"></span>', unsafe_allow_html=True)
+    # Điểm neo vô hình (được set height: 0 để không chiếm diện tích)
+    st.markdown('<div class="board-anchor" style="height:0px; margin:0; padding:0;"></div>', unsafe_allow_html=True)
     
     for r in range(5):
-        cols = st.columns(5)
+        # Thiết lập cột và tắt gap (khoảng trống mặc định) của Streamlit
+        cols = st.columns(5, gap="small")
         for c in range(5):
             val = board_state[r, c]
             icon = "🔴" if val == 1 else "🔵" if val == -1 else " "
