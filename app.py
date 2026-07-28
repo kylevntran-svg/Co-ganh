@@ -56,12 +56,11 @@ if 'selected_piece' not in st.session_state:
 st.title("Thưởng trà và cầm kì với Vịt 💖")
 
 if current_player == 1:
-    st.subheader("🔴 Lượt của ĐỎ")
+    st.subheader("🔴 Lượt của ĐỎ (Bạn)")
 else:
-    st.subheader("🔵 Lượt của XANH")
+    st.subheader("🔵 Lượt của XANH (Thảo)")
 
 st.info(msg_state)
-
 st.write("---")
 
 # --- MÃ HÓA CỨNG HÌNH NỀN BÀN CỜ (BASE64) ---
@@ -86,7 +85,7 @@ svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
-# --- CSS THIẾT QUÂN LUẬT: KHÓA CỨNG MỌI KÍCH THƯỚC ---
+# --- CSS CÁCH LY TUYỆT ĐỐI ---
 st.markdown(f"""
     <style>
     /* Chữ màu xanh pastel */
@@ -94,46 +93,36 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* 1. KHÓA CỨNG KHUNG BÀN CỜ ĐÚNG 400x400 */
-    div[data-testid="stVerticalBlock"]:has(.board-anchor) {{
+    /* 1. CHỈ NHẮM VÀO CỘT CHỨA ĐÚNG ID MAGIC-BOARD */
+    div[data-testid="column"]:has(#magic-board) {{
         background-image: url("{bg_url}") !important;
         background-size: 400px 400px !important;
-        background-position: center bottom !important; 
+        background-position: center !important; 
         background-repeat: no-repeat !important;
         width: 400px !important;
         min-width: 400px !important;
         max-width: 400px !important;
-        height: auto !important;
-        margin: 20px auto !important;
+        height: 400px !important;
+        margin: 0 auto !important;
         padding: 0 !important;
-        border: 3px solid #555 !important;
+        border: 2px solid #555 !important;
         border-radius: 12px !important;
         background-color: #1e1e1e !important;
         box-shadow: 0px 8px 16px rgba(0,0,0,0.5) !important;
-        gap: 0 !important; /* Ép Streamlit không được chèn khoảng trống thừa */
-    }}
-    
-    /* Xóa khoảng trống của điểm neo (Anchor) */
-    div[data-testid="stVerticalBlock"]:has(.board-anchor) > div:first-child {{
-        height: 0px !important;
-        min-height: 0px !important;
-        margin: 0 !important;
-        padding: 0 !important;
     }}
 
-    /* 2. KHÓA CỨNG MỖI HÀNG (ROW) CAO ĐÚNG 80PX VÀ KHÔNG KHOẢNG HỞ */
-    div[data-testid="stVerticalBlock"]:has(.board-anchor) div[data-testid="stHorizontalBlock"] {{
+    /* 2. ÉP KHUNG TỪNG HÀNG TRONG BÀN CỜ */
+    div[data-testid="column"]:has(#magic-board) div[data-testid="stHorizontalBlock"] {{
         width: 400px !important;
         height: 80px !important;
         min-height: 80px !important;
-        max-height: 80px !important;
         margin: 0 !important;
         padding: 0 !important;
-        gap: 0 !important; /* Xóa kẽ hở giữa các cột */
+        gap: 0 !important;
     }}
     
-    /* 3. KHÓA CỨNG MỖI Ô CỜ RỘNG ĐÚNG 80PX */
-    div[data-testid="stVerticalBlock"]:has(.board-anchor) div[data-testid="column"] {{
+    /* 3. ÉP KHUNG TỪNG Ô CỜ */
+    div[data-testid="column"]:has(#magic-board) div[data-testid="stHorizontalBlock"] div[data-testid="column"] {{
         width: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
@@ -145,12 +134,12 @@ st.markdown(f"""
         align-items: center !important;
     }}
 
-    /* 4. ÉP MỌI NÚT BẤM TRONG BÀN CỜ PHẢI LÀ HÌNH TRÒN 50x50 */
-    div[data-testid="stVerticalBlock"]:has(.board-anchor) button {{
-        width: 50px !important;
-        height: 50px !important;
-        min-width: 50px !important;
-        min-height: 50px !important;
+    /* 4. CHỈ LÀM TRÒN NÚT TRONG BÀN CỜ */
+    div[data-testid="column"]:has(#magic-board) button {{
+        width: 46px !important;
+        height: 46px !important;
+        min-width: 46px !important;
+        min-height: 46px !important;
         border-radius: 50% !important;
         padding: 0 !important;
         margin: 0 !important;
@@ -161,14 +150,12 @@ st.markdown(f"""
         align-items: center !important;
         transition: all 0.1s ease-in-out !important;
     }}
-    div[data-testid="stVerticalBlock"]:has(.board-anchor) button:hover {{
+    div[data-testid="column"]:has(#magic-board) button:hover {{
         border-color: #B4D4FF !important;
         transform: scale(1.1) !important;
     }}
-    
-    /* Căn chỉnh icon bên trong nút bấm */
-    div[data-testid="stVerticalBlock"]:has(.board-anchor) button p {{
-        font-size: 22px !important;
+    div[data-testid="column"]:has(#magic-board) button p {{
+        font-size: 20px !important;
         margin: 0 !important;
         padding: 0 !important;
         line-height: 1 !important;
@@ -176,13 +163,16 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- VẼ BÀN CỜ ---
-with st.container():
-    # Điểm neo vô hình (được set height: 0 để không chiếm diện tích)
-    st.markdown('<div class="board-anchor" style="height:0px; margin:0; padding:0;"></div>', unsafe_allow_html=True)
+# --- VẼ BÀN CỜ CÁCH LY (DÙNG 3 CỘT) ---
+# Tạo 3 cột để ép bàn cờ vào cột giữa, không cho CSS lem ra ngoài
+spacer_left, col_board, spacer_right = st.columns([1, 2, 1])
+
+with col_board:
+    # Điểm neo nhận diện duy nhất
+    st.markdown('<div id="magic-board" style="display:none;"></div>', unsafe_allow_html=True)
     
     for r in range(5):
-        # Thiết lập cột và tắt gap (khoảng trống mặc định) của Streamlit
+        # Tắt khoảng trống gap của Streamlit
         cols = st.columns(5, gap="small")
         for c in range(5):
             val = board_state[r, c]
@@ -221,8 +211,10 @@ with st.container():
 
 st.write("---")
 
+# Nút Reset giờ đây hoàn toàn tự do ở bên ngoài!
 if st.button("Làm mới toàn bộ bàn cờ (Reset) 🔄", type="primary"):
     fresh_game = CoGanh()
     save_game_to_firebase(fresh_game.board, 1, "Đỏ đi trước.")
     st.session_state.selected_piece = None
+    st.rerun()
     st.rerun()
