@@ -56,14 +56,14 @@ if 'selected_piece' not in st.session_state:
 st.title("Thưởng trà và cầm kì với Vịt 💖")
 
 if current_player == 1:
-    st.subheader("🔴 Lượt của ĐỎ (Bạn)")
+    st.subheader("🔴 Lượt của ĐỎ")
 else:
-    st.subheader("🔵 Lượt của XANH (Thảo)")
+    st.subheader("🔵 Lượt của XANH")
 
 st.info(msg_state)
 st.write("---")
 
-# --- MÃ HÓA HÌNH NỀN BÀN CỜ (Không viền ngoài) ---
+# --- MÃ HÓA HÌNH NỀN SVG (Lưới Cờ Không Viền) ---
 svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
   <g stroke="#666666" stroke-width="3">
     <line x1="40" y1="120" x2="360" y2="120"/>
@@ -83,7 +83,7 @@ svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
-# --- CSS NGUYÊN THỦY (KHÔNG DÙNG LỆNH PHỨC TẠP, BAO CHẠY 100%) ---
+# --- CSS BẮT BẮT MỌI CLASS NGẦM CỦA STREAMLIT ---
 st.markdown(f"""
     <style>
     /* Chữ màu xanh pastel */
@@ -91,23 +91,25 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* 1. ÉP HÀNG CỜ: Cao chuẩn 80px và tự động căn giữa */
-    div[data-testid="stHorizontalBlock"] {{
+    /* 1. KHÓA CỨNG HÀNG CỜ: Luôn cao 80px và gom chặt vào giữa */
+    div[data-testid*="stHorizontalBlock"] {{
         height: 80px !important;
         min-height: 80px !important;
         max-height: 80px !important;
         justify-content: center !important; 
+        align-items: center !important;
         margin: 0 !important;
         padding: 0 !important;
         gap: 0 !important;
+        width: 100% !important;
     }}
 
-    /* 2. ÉP CỘT CỜ: Chống bóp méo hình chữ nhật, khóa cứng 80x80px */
-    div[data-testid="column"] {{
+    /* 2. KHÓA CỨNG CỘT CỜ: Bất chấp Streamlit co giãn, ép thành hình vuông 80x80px */
+    div[data-testid*="column"] {{
         width: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
-        flex: none !important; /* ĐÂY LÀ LỆNH CHỐNG MÉO */
+        flex: 0 0 80px !important; /* Lệnh đè bẹp Flexbox của Streamlit */
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -115,14 +117,14 @@ st.markdown(f"""
         padding: 0 !important;
     }}
 
-    /* 3. NẶN NÚT CỜ THÀNH TRÒN 48x48px (Loại trừ nút Reset) */
-    button[data-testid="baseButton-secondary"] {{
-        width: 48px !important;
-        height: 48px !important;
-        min-width: 48px !important;
-        min-height: 48px !important;
-        max-width: 48px !important;
-        max-height: 48px !important;
+    /* 3. NẶN NÚT CỜ THÀNH TRÒN 50x50px (Dùng *= để bắt mọi tên class chứa chữ secondary) */
+    button[data-testid*="secondary"] {{
+        width: 50px !important;
+        height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
+        max-width: 50px !important;
+        max-height: 50px !important;
         border-radius: 50% !important;
         background-color: #1a1a1a !important; 
         border: 2px solid #555 !important;
@@ -131,15 +133,15 @@ st.markdown(f"""
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        z-index: 2 !important; /* Đẩy cờ nổi lên trên */
+        z-index: 2 !important; 
         transition: transform 0.1s ease-in-out !important;
     }}
-    button[data-testid="baseButton-secondary"]:hover {{
+    button[data-testid*="secondary"]:hover {{
         border-color: #B4D4FF !important;
         transform: scale(1.15) !important;
     }}
-    button[data-testid="baseButton-secondary"] p {{
-        font-size: 22px !important;
+    button[data-testid*="secondary"] p {{
+        font-size: 24px !important;
         margin: 0 !important;
         padding: 0 !important;
         line-height: 1 !important;
@@ -149,30 +151,30 @@ st.markdown(f"""
 
 # --- VẼ BÀN CỜ ---
 with st.container():
-    # CHÌA KHÓA: Đặt một tấm nền lơ lửng (Absolute) nằm chìm phía dưới. 
-    # Căn giữa hoàn hảo, không phụ thuộc vào bất kỳ hàm CSS phức tạp nào.
+    # CHÌA KHÓA TOÁN HỌC: Lót nền 400x400 và kéo nó giật lùi lên trên bằng calc()
+    # Công thức này bù trừ hoàn hảo khoảng trống 1rem mặc định của Streamlit!
     st.markdown(f"""
         <div style="
-            position: absolute;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 0;
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            margin-bottom: calc(-400px - 1rem); 
+            position: relative; 
+            z-index: 0; 
             pointer-events: none;
-            margin-top: 0px;
         ">
             <div style="
-                width: 400px;
-                height: 400px;
-                background-image: url('{bg_url}');
-                background-size: 100% 100%;
-                background-position: center;
+                width: 400px; 
+                height: 400px; 
+                background-image: url('{bg_url}'); 
+                background-size: 400px 400px; 
+                background-position: center; 
                 background-repeat: no-repeat;
             "></div>
         </div>
     """, unsafe_allow_html=True)
 
-    # In 25 nút cờ đè lên trên tấm nền
+    # In 25 nút cờ đè lên lưới
     for r in range(5):
         cols = st.columns(5)
         for c in range(5):
@@ -183,7 +185,6 @@ with st.container():
                 icon = "🔥"
                 
             with cols[c]:
-                # Sử dụng nút Secondary để CSS ở trên bắt trúng mục tiêu làm tròn
                 if st.button(icon, key=f"btn_{r}_{c}"):
                     if st.session_state.selected_piece is None:
                         if val == current_player:
@@ -213,7 +214,7 @@ with st.container():
 
 st.write("---")
 
-# Nút Reset sử dụng type="primary" để phân biệt, không bị làm tròn thành hình quân cờ
+# Nút Reset sử dụng type="primary", nhờ vậy nó không bị class *="secondary" làm tròn!
 if st.button("Làm mới toàn bộ bàn cờ (Reset) 🔄", type="primary"):
     fresh_game = CoGanh()
     save_game_to_firebase(fresh_game.board, 1, "Đỏ đi trước.")
