@@ -63,31 +63,32 @@ else:
 st.info(msg_state)
 st.write("---")
 
-# --- MÃ HÓA HÌNH NỀN BÀN CỜ 464px ---
-svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 464 464">
-  <g stroke="#666666" stroke-width="3">
+# --- MÃ HÓA HÌNH NỀN THEO TỌA ĐỘ MA TRẬN A1, B1 (Thang đo 0-100) ---
+# Tọa độ các tâm chính xác là: 10, 30, 50, 70, 90
+svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+  <g stroke="#666666" stroke-width="0.8">
     <!-- 3 Đường Ngang -->
-    <line x1="40" y1="136" x2="424" y2="136"/>
-    <line x1="40" y1="232" x2="424" y2="232"/>
-    <line x1="40" y1="328" x2="424" y2="328"/>
+    <line x1="10" y1="30" x2="90" y2="30"/>
+    <line x1="10" y1="50" x2="90" y2="50"/>
+    <line x1="10" y1="70" x2="90" y2="70"/>
     <!-- 3 Đường Dọc -->
-    <line x1="136" y1="40" x2="136" y2="424"/>
-    <line x1="232" y1="40" x2="232" y2="424"/>
-    <line x1="328" y1="40" x2="328" y2="424"/>
+    <line x1="30" y1="10" x2="30" y2="90"/>
+    <line x1="50" y1="10" x2="50" y2="90"/>
+    <line x1="70" y1="10" x2="70" y2="90"/>
     <!-- Chéo Chính (Đường X lớn) -->
-    <line x1="40" y1="40" x2="424" y2="424"/>
-    <line x1="424" y1="40" x2="40" y2="424"/>
+    <line x1="10" y1="10" x2="90" y2="90"/>
+    <line x1="90" y1="10" x2="10" y2="90"/>
     <!-- Chéo Phụ (Hình Thoi) -->
-    <line x1="232" y1="40" x2="40" y2="232"/>
-    <line x1="232" y1="40" x2="424" y2="232"/>
-    <line x1="40" y1="232" x2="232" y2="424"/>
-    <line x1="424" y1="232" x2="232" y2="424"/>
+    <line x1="50" y1="10" x2="10" y2="50"/>
+    <line x1="50" y1="10" x2="90" y2="50"/>
+    <line x1="10" y1="50" x2="50" y2="90"/>
+    <line x1="90" y1="50" x2="50" y2="90"/>
   </g>
 </svg>"""
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
-# --- CSS BẮT BẮT MỌI CLASS NGẦM CỦA STREAMLIT ---
+# --- CSS: ÉP KHUNG TỰ ĐỘNG CO GIÃN THÀNH HÌNH VUÔNG ---
 st.markdown(f"""
     <style>
     /* Chữ màu xanh pastel */
@@ -95,24 +96,41 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* 1. KHÓA CỨNG HÀNG CỜ: Đã xóa gap: 0 để Streamlit tự tạo khe hở 16px */
-    div[data-testid*="stHorizontalBlock"] {{
-        height: 80px !important;
-        min-height: 80px !important;
-        max-height: 80px !important;
-        justify-content: center !important; 
-        align-items: center !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
+    /* Ẩn thẻ marker */
+    div.element-container:has(.board-marker) {{
+        display: none !important;
     }}
 
-    /* 2. KHÓA CỨNG CỘT CỜ: Ép thành hình vuông 80x80px */
-    div[data-testid*="column"] {{
-        width: 80px !important;
-        min-width: 80px !important;
-        max-width: 80px !important;
-        flex: 0 0 80px !important;
+    /* 1. KHUNG BÀN CỜ: Luôn là hình vuông hoàn hảo (aspect-ratio: 1/1) */
+    div[data-testid*="stVerticalBlock"]:has(> div.element-container .board-marker) {{
+        width: 100% !important;
+        max-width: 500px !important;
+        aspect-ratio: 1 / 1 !important;
+        margin: 20px auto !important;
+        background-image: url('{bg_url}') !important;
+        background-size: 100% 100% !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        padding: 0 !important;
+        gap: 0 !important;
+    }}
+
+    /* 2. CÁC HÀNG: Chia đều 5 hàng, mỗi hàng chiếm đúng 20% chiều cao */
+    div[data-testid*="stVerticalBlock"]:has(> div.element-container .board-marker) > div[data-testid*="stHorizontalBlock"] {{
+        height: 20% !important;
+        min-height: 20% !important;
+        max-height: 20% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+    }}
+
+    /* 3. CÁC CỘT: Chia đều 5 cột, mỗi cột chiếm đúng 20% chiều rộng */
+    div[data-testid*="stVerticalBlock"]:has(> div.element-container .board-marker) div[data-testid*="column"] {{
+        width: 20% !important;
+        flex: 1 1 20% !important;
+        height: 100% !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -120,14 +138,10 @@ st.markdown(f"""
         padding: 0 !important;
     }}
 
-    /* 3. NẶN NÚT CỜ THÀNH TRÒN 50x50px */
+    /* 4. NÚT CỜ: Đặt cố định kích thước, luôn nằm chính giữa ô 20x20% */
     button[data-testid*="secondary"] {{
-        width: 50px !important;
-        height: 50px !important;
-        min-width: 50px !important;
-        min-height: 50px !important;
-        max-width: 50px !important;
-        max-height: 50px !important;
+        width: 48px !important;
+        height: 48px !important;
         border-radius: 50% !important;
         background-color: #1a1a1a !important; 
         border: 2px solid #555 !important;
@@ -154,29 +168,10 @@ st.markdown(f"""
 
 # --- VẼ BÀN CỜ ---
 with st.container():
-    # SỬA LỖI TẠI ĐÂY: Đồng bộ thông số 464px từ SVG sang Div bọc ngoài
-    st.markdown(f"""
-        <div style="
-            width: 100%; 
-            display: flex; 
-            justify-content: center; 
-            margin-bottom: -464px; /* Giật lùi chính xác bằng chiều cao của lưới */
-            position: relative; 
-            z-index: 0; 
-            pointer-events: none;
-        ">
-            <div style="
-                width: 464px; /* Nới rộng khung khớp 100% với toán học */
-                height: 464px; 
-                background-image: url('{bg_url}'); 
-                background-size: 464px 464px; 
-                background-position: center; 
-                background-repeat: no-repeat;
-            "></div>
-        </div>
-    """, unsafe_allow_html=True)
+    # Điểm đánh dấu (Marker) giúp CSS nhận diện chính xác vùng bàn cờ
+    st.markdown('<div class="board-marker"></div>', unsafe_allow_html=True)
 
-    # In 25 nút cờ đè lên lưới
+    # In 25 nút cờ, tự động được CSS ép vào đúng tọa độ lưới phần trăm
     for r in range(5):
         cols = st.columns(5)
         for c in range(5):
