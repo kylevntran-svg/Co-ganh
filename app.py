@@ -63,21 +63,25 @@ else:
 st.info(msg_state)
 st.write("---")
 
-# --- MÃ HÓA HÌNH NỀN SVG (Lưới Cờ Không Viền) ---
-svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+# --- MÃ HÓA HÌNH NỀN BÀN CỜ 464px ---
+svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 464 464">
   <g stroke="#666666" stroke-width="3">
-    <line x1="40" y1="120" x2="360" y2="120"/>
-    <line x1="40" y1="200" x2="360" y2="200"/>
-    <line x1="40" y1="280" x2="360" y2="280"/>
-    <line x1="120" y1="40" x2="120" y2="360"/>
-    <line x1="200" y1="40" x2="200" y2="360"/>
-    <line x1="280" y1="40" x2="280" y2="360"/>
-    <line x1="40" y1="40" x2="360" y2="360"/>
-    <line x1="360" y1="40" x2="40" y2="360"/>
-    <line x1="200" y1="40" x2="40" y2="200"/>
-    <line x1="200" y1="40" x2="360" y2="200"/>
-    <line x1="40" y1="200" x2="200" y2="360"/>
-    <line x1="360" y1="200" x2="200" y2="360"/>
+    <!-- 3 Đường Ngang -->
+    <line x1="40" y1="136" x2="424" y2="136"/>
+    <line x1="40" y1="232" x2="424" y2="232"/>
+    <line x1="40" y1="328" x2="424" y2="328"/>
+    <!-- 3 Đường Dọc -->
+    <line x1="136" y1="40" x2="136" y2="424"/>
+    <line x1="232" y1="40" x2="232" y2="424"/>
+    <line x1="328" y1="40" x2="328" y2="424"/>
+    <!-- Chéo Chính (Đường X lớn) -->
+    <line x1="40" y1="40" x2="424" y2="424"/>
+    <line x1="424" y1="40" x2="40" y2="424"/>
+    <!-- Chéo Phụ (Hình Thoi) -->
+    <line x1="232" y1="40" x2="40" y2="232"/>
+    <line x1="232" y1="40" x2="424" y2="232"/>
+    <line x1="40" y1="232" x2="232" y2="424"/>
+    <line x1="424" y1="232" x2="232" y2="424"/>
   </g>
 </svg>"""
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
@@ -91,7 +95,7 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* 1. KHÓA CỨNG HÀNG CỜ: Luôn cao 80px và gom chặt vào giữa */
+    /* 1. KHÓA CỨNG HÀNG CỜ: Đã xóa gap: 0 để Streamlit tự tạo khe hở 16px */
     div[data-testid*="stHorizontalBlock"] {{
         height: 80px !important;
         min-height: 80px !important;
@@ -100,16 +104,15 @@ st.markdown(f"""
         align-items: center !important;
         margin: 0 !important;
         padding: 0 !important;
-        gap: 0 !important;
         width: 100% !important;
     }}
 
-    /* 2. KHÓA CỨNG CỘT CỜ: Bất chấp Streamlit co giãn, ép thành hình vuông 80x80px */
+    /* 2. KHÓA CỨNG CỘT CỜ: Ép thành hình vuông 80x80px */
     div[data-testid*="column"] {{
         width: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
-        flex: 0 0 80px !important; /* Lệnh đè bẹp Flexbox của Streamlit */
+        flex: 0 0 80px !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -117,7 +120,7 @@ st.markdown(f"""
         padding: 0 !important;
     }}
 
-    /* 3. NẶN NÚT CỜ THÀNH TRÒN 50x50px (Dùng *= để bắt mọi tên class chứa chữ secondary) */
+    /* 3. NẶN NÚT CỜ THÀNH TRÒN 50x50px */
     button[data-testid*="secondary"] {{
         width: 50px !important;
         height: 50px !important;
@@ -151,23 +154,22 @@ st.markdown(f"""
 
 # --- VẼ BÀN CỜ ---
 with st.container():
-    # CHÌA KHÓA TOÁN HỌC: Lót nền 400x400 và kéo nó giật lùi lên trên bằng calc()
-    # Công thức này bù trừ hoàn hảo khoảng trống 1rem mặc định của Streamlit!
+    # SỬA LỖI TẠI ĐÂY: Đồng bộ thông số 464px từ SVG sang Div bọc ngoài
     st.markdown(f"""
         <div style="
             width: 100%; 
             display: flex; 
             justify-content: center; 
-            margin-bottom: calc(-400px - 1rem); 
+            margin-bottom: -464px; /* Giật lùi chính xác bằng chiều cao của lưới */
             position: relative; 
             z-index: 0; 
             pointer-events: none;
         ">
             <div style="
-                width: 400px; 
-                height: 400px; 
+                width: 464px; /* Nới rộng khung khớp 100% với toán học */
+                height: 464px; 
                 background-image: url('{bg_url}'); 
-                background-size: 400px 400px; 
+                background-size: 464px 464px; 
                 background-position: center; 
                 background-repeat: no-repeat;
             "></div>
@@ -214,7 +216,6 @@ with st.container():
 
 st.write("---")
 
-# Nút Reset sử dụng type="primary", nhờ vậy nó không bị class *="secondary" làm tròn!
 if st.button("Làm mới toàn bộ bàn cờ (Reset) 🔄", type="primary"):
     fresh_game = CoGanh()
     save_game_to_firebase(fresh_game.board, 1, "Đỏ đi trước.")
