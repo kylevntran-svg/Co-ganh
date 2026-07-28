@@ -63,44 +63,56 @@ else:
 st.info(msg_state)
 st.write("---")
 
-# --- MÃ HÓA HÌNH NỀN THEO THANG ĐO 100x100 ---
+# --- MÃ HÓA HÌNH NỀN ĐẦY ĐỦ A-E CHO TỪNG HÀNG 1 ĐẾN 5 ---
 svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
   <g stroke="#666666" stroke-width="0.8">
+    <!-- Hàng ngang 1 đến 5 -->
+    <line x1="10" y1="10" x2="90" y2="10"/>
     <line x1="10" y1="30" x2="90" y2="30"/>
     <line x1="10" y1="50" x2="90" y2="50"/>
     <line x1="10" y1="70" x2="90" y2="70"/>
+    <line x1="10" y1="90" x2="90" y2="90"/>
+    
+    <!-- Cột dọc A đến E -->
+    <line x1="10" y1="10" x2="10" y2="90"/>
     <line x1="30" y1="10" x2="30" y2="90"/>
     <line x1="50" y1="10" x2="50" y2="90"/>
     <line x1="70" y1="10" x2="70" y2="90"/>
+    <line x1="90" y1="10" x2="90" y2="90"/>
+    
+    <!-- Các đường chéo quy luật Cờ Gánh -->
     <line x1="10" y1="10" x2="90" y2="90"/>
     <line x1="90" y1="10" x2="10" y2="90"/>
     <line x1="50" y1="10" x2="10" y2="50"/>
     <line x1="50" y1="10" x2="90" y2="50"/>
     <line x1="10" y1="50" x2="50" y2="90"/>
     <line x1="90" y1="50" x2="50" y2="90"/>
+    
+    <line x1="50" y1="90" x2="10" y2="50"/>
+    <line x1="50" y1="90" x2="90" y2="50"/>
+    <line x1="10" y1="50" x2="50" y2="10"/>
+    <line x1="90" y1="50" x2="50" y2="10"/>
   </g>
 </svg>"""
 b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
 bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
-# --- TÍNH TOÁN MA TRẬN A1, B1... THEO CÔNG THỨC CỦA BẠN ---
+# --- TẠO TỌA ĐỘ TUYỆT ĐỐI CHO 25 Ô ---
 css_positions = ""
 for i in range(25):
     r = i // 5
     c = i % 5
-    # Tọa độ tuyệt đối % (10, 30, 50, 70, 90)
     top = 10 + r * 20
     left = 10 + c * 20
     
-    # nth-child bắt đầu từ 2 (vì số 1 là the div board-marker)
     css_positions += f"""
-    div[data-testid="stVerticalBlock"]:has(.board-marker) > div.element-container:nth-child({i+2}) {{
+    .co-ganh-board div.element-container:nth-of-type({i+1}) {{
         position: absolute !important;
         top: {top}% !important;
         left: {left}% !important;
         transform: translate(-50%, -50%) !important;
-        width: 50px !important;
-        height: 50px !important;
+        width: 45px !important;
+        height: 45px !important;
         margin: 0 !important;
         padding: 0 !important;
         z-index: 10 !important;
@@ -114,13 +126,8 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* 1. Ẩn điểm đánh dấu */
-    div.element-container:has(.board-marker) {{
-        display: none !important;
-    }}
-
-    /* 2. KHUNG BÀN CỜ CHÍNH: Ép thành hình vuông tĩnh 400x400 */
-    div[data-testid="stVerticalBlock"]:has(.board-marker) {{
+    /* KHUNG BÀN CỜ ĐƯỢC CÁCH LY TUYỆT ĐỐI */
+    .co-ganh-board {{
         position: relative !important;
         width: 400px !important;
         height: 400px !important;
@@ -131,15 +138,15 @@ st.markdown(f"""
         background-repeat: no-repeat !important;
     }}
 
-    /* 3. Bơm toàn bộ 25 tọa độ đã tính toán vào đây */
+    /* Bơm tọa độ 25 quân cờ vào trong khung */
     {css_positions}
 
-    /* 4. Định hình nút cờ (Chỉ áp dụng cho các nút bên trong bàn cờ) */
-    div[data-testid="stVerticalBlock"]:has(.board-marker) button {{
-        width: 50px !important;
-        height: 50px !important;
-        min-width: 50px !important;
-        min-height: 50px !important;
+    /* Định hình nút bấm quân cờ */
+    .co-ganh-board button {{
+        width: 45px !important;
+        height: 45px !important;
+        min-width: 45px !important;
+        min-height: 45px !important;
         border-radius: 50% !important;
         background-color: #1a1a1a !important; 
         border: 2px solid #555 !important;
@@ -150,12 +157,12 @@ st.markdown(f"""
         align-items: center !important;
         transition: transform 0.1s ease-in-out !important;
     }}
-    div[data-testid="stVerticalBlock"]:has(.board-marker) button:hover {{
+    .co-ganh-board button:hover {{
         border-color: #B4D4FF !important;
         transform: scale(1.15) !important;
     }}
-    div[data-testid="stVerticalBlock"]:has(.board-marker) button p {{
-        font-size: 24px !important;
+    .co-ganh-board button p {{
+        font-size: 22px !important;
         margin: 0 !important;
         padding: 0 !important;
         line-height: 1 !important;
@@ -163,12 +170,10 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- VẼ BÀN CỜ (Không dùng st.columns nữa) ---
+# --- VẼ BÀN CỜ BÊN TRONG CONTAINER CÁCH LY (.co-ganh-board) ---
 with st.container():
-    # Điểm neo giúp CSS tìm đúng khung bàn cờ
-    st.markdown('<div class="board-marker"></div>', unsafe_allow_html=True)
-
-    # Đổ 25 quân cờ liên tục. CSS sẽ tự động bốc từng quân cờ ném vào đúng tọa độ A1, B1...
+    st.markdown('<div class="co-ganh-board">', unsafe_allow_html=True)
+    
     for r in range(5):
         for c in range(5):
             val = board_state[r, c]
@@ -203,6 +208,8 @@ with st.container():
                         st.session_state.selected_piece = None
                         save_game_to_firebase(game_logic.board, current_player, next_msg)
                         st.rerun()
+                        
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.write("---")
 
