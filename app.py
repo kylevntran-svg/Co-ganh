@@ -1,13 +1,14 @@
 import streamlit as st
 import requests
 import numpy as np
+import base64
 from co_ganh import CoGanh
 from streamlit_autorefresh import st_autorefresh
 
 # 🔴 ĐƯỜNG LINK FIREBASE CỦA BẠN
 FIREBASE_URL = "https://co-ganh-4fe17-default-rtdb.firebaseio.com/"
 
-# --- BẬT CHẾ ĐỘ TỰ ĐỘNG LÀM MỚI (AUTO-REFRESH) ---
+# --- BẬT CHẾ ĐỘ TỰ ĐỘNG LÀM MỚI ---
 st_autorefresh(interval=2000, key="board_refresh")
 
 # --- CÁC HÀM GIAO TIẾP VỚI BỘ NÃO FIREBASE ---
@@ -36,10 +37,10 @@ fb_data = load_game_from_firebase()
 
 if fb_data is None:
     game_logic = CoGanh()
-    save_game_to_firebase(game_logic.board, 1, " Đỏ đi trước")
+    save_game_to_firebase(game_logic.board, 1, "Đỏ đi trước.")
     board_state = game_logic.board
     current_player = 1
-    msg_state = "Đỏ đi trước"
+    msg_state = "Đỏ đi trước."
 else:
     board_state = np.array(fb_data["board"])
     current_player = fb_data["current_player"]
@@ -54,47 +55,36 @@ if 'selected_piece' not in st.session_state:
 # --- GIAO DIỆN CHÍNH ---
 st.title("Thưởng trà và cầm kì với Vịt 💖")
 
-col_turn, col_avatar = st.columns([2, 1])
-
-with col_turn:
-    if current_player == 1:
-        st.subheader("🔴 Lượt của ĐỎ")
-    else:
-        st.subheader("🔵 Lượt của XANH")
-with col_avatar:
-    try:
-        if current_player == 1:
-            st.image("em_yeu_om_ga.jpg", width=120)
-        else:
-            st.image("em_yeu_om_hoa.jpg", width=120)
-    except:
-        pass
+if current_player == 1:
+    st.subheader("🔴 Lượt của ĐỎ")
+else:
+    st.subheader("🔵 Lượt của XANH")
 
 st.info(msg_state)
 
 st.write("---")
 
-# --- MA THUẬT CSS MỚI: SỬA LỖI GIAO DIỆN TUYỆT ĐỐI ---
-svg_bg = """
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <line x1="40" y1="40" x2="360" y2="40" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="120" x2="360" y2="120" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="200" x2="360" y2="200" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="280" x2="360" y2="280" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="360" x2="360" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="40" x2="40" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="120" y1="40" x2="120" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="200" y1="40" x2="200" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="280" y1="40" x2="280" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="360" y1="40" x2="360" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="40" x2="360" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="360" y1="40" x2="40" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="200" y1="40" x2="40" y2="200" stroke="%23555555" stroke-width="2"/>
-  <line x1="200" y1="40" x2="360" y2="200" stroke="%23555555" stroke-width="2"/>
-  <line x1="40" y1="200" x2="200" y2="360" stroke="%23555555" stroke-width="2"/>
-  <line x1="360" y1="200" x2="200" y2="360" stroke="%23555555" stroke-width="2"/>
-</svg>
-""".replace("\n", "").strip()
+# --- MÃ HÓA CỨNG HÌNH NỀN BÀN CỜ (BASE64) ---
+svg_code = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <line x1="40" y1="40" x2="360" y2="40" stroke="#555555" stroke-width="2"/>
+  <line x1="40" y1="120" x2="360" y2="120" stroke="#555555" stroke-width="2"/>
+  <line x1="40" y1="200" x2="360" y2="200" stroke="#555555" stroke-width="2"/>
+  <line x1="40" y1="280" x2="360" y2="280" stroke="#555555" stroke-width="2"/>
+  <line x1="40" y1="360" x2="360" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="40" y1="40" x2="40" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="120" y1="40" x2="120" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="200" y1="40" x2="200" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="280" y1="40" x2="280" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="360" y1="40" x2="360" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="40" y1="40" x2="360" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="360" y1="40" x2="40" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="200" y1="40" x2="40" y2="200" stroke="#555555" stroke-width="2"/>
+  <line x1="200" y1="40" x2="360" y2="200" stroke="#555555" stroke-width="2"/>
+  <line x1="40" y1="200" x2="200" y2="360" stroke="#555555" stroke-width="2"/>
+  <line x1="360" y1="200" x2="200" y2="360" stroke="#555555" stroke-width="2"/>
+</svg>"""
+b64_svg = base64.b64encode(svg_code.encode("utf-8")).decode("utf-8")
+bg_url = f"data:image/svg+xml;base64,{b64_svg}"
 
 st.markdown(f"""
     <style>
@@ -103,41 +93,8 @@ st.markdown(f"""
         color: #B4D4FF !important;
     }}
     
-    /* 1. SỬA LỖI NỀN KHỔNG LỒ & CĂN KHUNG 400x400 TẬP TRUNG */
-    div[data-testid="stVerticalBlock"]:has(.board-anchor):not(:has(div[data-testid="stVerticalBlock"]:has(.board-anchor))) {{
-        background-image: url('data:image/svg+xml;utf8,{svg_bg}');
-        background-size: 100% 100%;
-        background-position: center;
-        background-repeat: no-repeat;
-        width: 400px !important;
-        max-width: 400px !important;
-        height: 400px !important;
-        margin: 20px auto !important;
-        padding: 0 !important; /* Xóa khoảng trống thừa để căn giữa tuyệt đối */
-        border: 3px solid #555 !important;
-        border-radius: 12px !important;
-        background-color: #1e1e1e !important;
-        box-shadow: 0px 8px 16px rgba(0,0,0,0.5) !important;
-        overflow: hidden !important;
-    }}
-    
-    /* 2. CHIA ĐỀU 5 HÀNG, MỖI HÀNG ĐÚNG 80px (80x5=400) */
-    div[data-testid="stVerticalBlock"]:has(.board-anchor):not(:has(div[data-testid="stVerticalBlock"]:has(.board-anchor))) div[data-testid="stHorizontalBlock"] {{
-        height: 80px !important;
-        min-height: 80px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        gap: 0 !important;
-    }}
-    div[data-testid="stVerticalBlock"]:has(.board-anchor):not(:has(div[data-testid="stVerticalBlock"]:has(.board-anchor))) div[data-testid="column"] {{
-        padding: 0 !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }}
-
-    /* 3. ÉP NÚT BẤM THÀNH HÌNH TRÒN HOÀN HẢO 50x50 */
-    .stButton > button {{
+    /* CHỈ NHẮM VÀO NÚT QUÂN CỜ */
+    button[data-testid="baseButton-secondary"] {{
         height: 50px !important;
         width: 50px !important;
         min-height: 50px !important;
@@ -152,28 +109,59 @@ st.markdown(f"""
         margin: auto !important;
         transition: all 0.1s ease-in-out !important;
     }}
-    .stButton > button > div > p {{
+    button[data-testid="baseButton-secondary"] p {{
         font-size: 24px !important;
         margin: 0 !important;
         line-height: 1 !important;
     }}
-    .stButton > button:hover {{
+    button[data-testid="baseButton-secondary"]:hover {{
         border-color: #B4D4FF !important;
         transform: scale(1.1) !important;
+    }}
+
+    /* KHOANH VÙNG CHUẨN XÁC NỀN BÀN CỜ */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .board-anchor) {{
+        background-image: url("{bg_url}");
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+        width: 400px !important;
+        max-width: 400px !important;
+        height: 400px !important;
+        margin: 20px auto !important;
+        border: 3px solid #555 !important;
+        border-radius: 12px !important;
+        background-color: #1e1e1e !important;
+        padding: 0 !important;
+        box-shadow: 0px 8px 16px rgba(0,0,0,0.5) !important;
+        overflow: hidden !important;
+    }}
+    
+    /* CHIA LƯỚI 5x5 ĐỀU NHAU TĂM TẮP */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .board-anchor) div[data-testid="stHorizontalBlock"] {{
+        height: 80px !important;
+        min-height: 80px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+    }}
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .board-anchor) div[data-testid="column"] {{
+        padding: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }}
     </style>
 """, unsafe_allow_html=True)
 
 # --- VẼ BÀN CỜ ---
 with st.container():
-    # Nhúng mỏ neo ẩn để CSS nhắm trúng cái hộp này
     st.markdown('<span class="board-anchor" style="display:none;"></span>', unsafe_allow_html=True)
     
     for r in range(5):
         cols = st.columns(5)
         for c in range(5):
             val = board_state[r, c]
-            # Dùng icon tàng hình cho ô trống để không đè lên đường kẻ
             icon = "🔴" if val == 1 else "🔵" if val == -1 else " "
             
             if st.session_state.selected_piece == (r, c):
@@ -208,8 +196,9 @@ with st.container():
                             st.rerun()
 
 st.write("---")
-if st.button("Làm mới toàn bộ bàn cờ (Reset) 🔄"):
+
+if st.button("Làm mới toàn bộ bàn cờ (Reset) 🔄", type="primary"):
     fresh_game = CoGanh()
-    save_game_to_firebase(fresh_game.board, 1, "Ván mới đã được thiết lập từ đầu!")
+    save_game_to_firebase(fresh_game.board, 1, "Đỏ đi trước.")
     st.session_state.selected_piece = None
     st.rerun()
